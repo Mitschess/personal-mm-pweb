@@ -1,5 +1,3 @@
-# AI-LOG
-
 ### 1. Kerangka HTML & CSS
 - **Prompt:**
   - "coba buat kerangka web html nya" (AI membaca file requirement ETS dan README persona saya)

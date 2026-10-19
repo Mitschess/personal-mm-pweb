@@ -140,7 +140,9 @@ function tampilkanHalaman(nama) {
     window.scrollTo(0, 0);
 }
 
+// =====================================================
 // TRANSAKSI (W1, W3)
+// =====================================================
 function ambilJenis() {
     const terpilih = document.querySelector('input[name="jenis"]:checked');
     return terpilih ? terpilih.value : "";
@@ -213,7 +215,9 @@ function hapusTransaksi(id) {
     tampilkanToast("Transaksi dihapus.");
 }
 
+// =====================================================
 // RENDER
+// =====================================================
 
 // ----- Ringkasan (W5) -----
 function hitungRingkasan() {
@@ -290,7 +294,9 @@ function renderSemua() {
     renderDaftar();
 }
 
+// =====================================================
 // EVENT LISTENER
+// =====================================================
 document.querySelectorAll(".nav-item").forEach((tombol) => {
     tombol.addEventListener("click", () => tampilkanHalaman(tombol.dataset.halaman));
 });
@@ -321,7 +327,9 @@ document.querySelectorAll('input[name="jenis"]').forEach((radio) => {
 $("form-transaksi").addEventListener("submit", simpanTransaksi);
 $("form-transaksi").addEventListener("input", hapusErrorSaatDiubah);
 
+// =====================================================
 // SAAT HALAMAN DIBUKA
+// =====================================================
 muatData();
 $("tanggal-hari-ini").textContent = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
