@@ -14,3 +14,13 @@
   - Aplikasi dibuat di tengah dalam bingkai dengan latar luar abu-abu, mengikuti contoh desain
   - `type` pada link icon diganti `image/png` karena file icon berformat PNG
   - Angka font Georgia awalnya naik-turun → ditambah `font-variant-numeric: lining-nums`
+
+### 2. W1–W4: tambah, daftar, hapus, simpan
+- **Prompt:**
+  - "coba implement js"
+  - "buat pemasukan dan pengeluaran menjadi diatas jadi ngga redundan, nanti tinggal di klik dari dua opsi tersebut"
+  - "coba buat web baru yang implement freelance money management"
+- **Dipakai:** `simpanData()`, `muatData()`, `bukaDialogTransaksi()`, `simpanTransaksi()`, `hapusTransaksi()`, `renderDaftar()`, `buatItemTransaksi()`, `formatRupiah()`, `ambilJenis()`
+- **Diubah:**
+  - Dropdown jenis diganti dua radio button bergaya tombol, supaya tinggal klik pemasukan/pengeluaran
+  - Bug: radio yang disembunyikan ikut aturan `input { width: 100% }` sehingga dialog bisa di-scroll ke samping → diberi `width: 0; height: 0` (detail di PROSES.md)
