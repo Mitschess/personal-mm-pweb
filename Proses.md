@@ -1,0 +1,1 @@
+1. Membuat readme yang berisi identitas dan permasalahan dari persona yang didapat
