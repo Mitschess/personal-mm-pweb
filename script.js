@@ -155,7 +155,7 @@ function tampilkanHalaman(nama) {
 }
 
 // =====================================================
-// TRANSAKSI (W1, W3)
+// TRANSAKSI (W1, W3, edit)
 // =====================================================
 function ambilJenis() {
     const terpilih = document.querySelector('input[name="jenis"]:checked');
@@ -167,12 +167,28 @@ function gantiOpsiKategoriForm() {
     isiOpsiKategori($("transaksi-kategori"), KATEGORI[ambilJenis()], "-- Pilih kategori --", "");
 }
 
-function bukaDialogTransaksi() {
+// transaksi kosong = mode tambah, berisi objek = mode edit
+function bukaDialogTransaksi(transaksi) {
     const form = $("form-transaksi");
     form.reset();
     hapusError(form);
-    gantiOpsiKategoriForm();
-    $("transaksi-tanggal").value = tanggalHariIni();
+
+    if (transaksi) {
+        $("judul-dialog-transaksi").textContent = "Edit Transaksi";
+        $("transaksi-id").value = transaksi.id;
+        $(`jenis-${transaksi.jenis}`).checked = true;
+        gantiOpsiKategoriForm();
+        $("transaksi-tanggal").value = transaksi.tanggal;
+        $("transaksi-kategori").value = transaksi.kategori;
+        $("transaksi-nominal").value = transaksi.nominal;
+        $("transaksi-catatan").value = transaksi.catatan;
+    } else {
+        $("judul-dialog-transaksi").textContent = "Tambah Transaksi";
+        $("transaksi-id").value = "";
+        gantiOpsiKategoriForm();
+        $("transaksi-tanggal").value = tanggalHariIni();
+    }
+
     $("dialog-transaksi").showModal();
 }
 
@@ -204,8 +220,8 @@ function simpanTransaksi(event) {
     event.preventDefault(); // cegah halaman reload saat form disubmit
     if (!validasiTransaksi()) return;
 
-    const transaksiBaru = {
-        id: Date.now(),
+    const id = $("transaksi-id").value;
+    const data = {
         tanggal: $("transaksi-tanggal").value,
         jenis: ambilJenis(),
         kategori: $("transaksi-kategori").value,
@@ -213,11 +229,21 @@ function simpanTransaksi(event) {
         catatan: $("transaksi-catatan").value.trim(),
     };
 
-    daftarTransaksi.push(transaksiBaru);
+    let pesan;
+    if (id) {
+        // Mode edit: timpa isi transaksi lama, id tetap sama
+        const index = daftarTransaksi.findIndex((t) => t.id === Number(id));
+        daftarTransaksi[index] = { ...daftarTransaksi[index], ...data };
+        pesan = "Transaksi diperbarui.";
+    } else {
+        daftarTransaksi.push({ id: Date.now(), ...data });
+        pesan = "Transaksi tersimpan.";
+    }
+
     simpanData();
     $("dialog-transaksi").close();
     renderSemua();
-    tampilkanToast("Transaksi tersimpan.");
+    tampilkanToast(pesan);
 }
 
 function hapusTransaksi(id) {
@@ -441,6 +467,10 @@ function buatItemTransaksi(t, denganAksi) {
 
     if (denganAksi) {
         const aksi = buatElemen("div", "item-aksi");
+        // Transaksi dari tagihan tidak bisa diedit supaya nominalnya tetap sama dengan tagihan
+        if (!t.tagihanId) {
+            aksi.appendChild(buatTombol("btn-ikon", "Edit", () => bukaDialogTransaksi(t)));
+        }
         aksi.appendChild(buatTombol("btn-ikon btn-ikon-hapus", "Hapus", () => hapusTransaksi(t.id)));
         li.appendChild(aksi);
     }
@@ -480,18 +510,70 @@ function buatItemTagihan(t, denganHapus) {
     return li;
 }
 
-// ----- Daftar transaksi (W2) -----
+// ----- Daftar transaksi + filter (W2) -----
+function ambilTransaksiTerfilter() {
+    const cari = $("filter-cari").value.trim().toLowerCase();
+    const jenis = $("filter-jenis").value;
+    const kategori = $("filter-kategori").value;
+    const dari = $("filter-dari").value;
+    const sampai = $("filter-sampai").value;
+
+    return daftarTransaksi.filter((t) => {
+        if (jenis !== "semua" && t.jenis !== jenis) return false;
+        if (kategori !== "semua" && t.kategori !== kategori) return false;
+        if (dari && t.tanggal < dari) return false;
+        if (sampai && t.tanggal > sampai) return false;
+        if (cari && !t.catatan.toLowerCase().includes(cari)) return false;
+        return true;
+    });
+}
+
 function renderDaftar() {
-    // [...] menyalin array supaya data asli tidak ikut terurut
-    const hasil = [...daftarTransaksi].sort(urutkanTerbaru);
+    const hasil = ambilTransaksiTerfilter().sort(urutkanTerbaru);
     const ul = $("daftar-transaksi");
     ul.innerHTML = "";
 
     if (hasil.length === 0) {
-        ul.appendChild(buatElemen("li", "kosong", "Belum ada transaksi. Klik “+ Transaksi” untuk mulai mencatat."));
+        const teks = daftarTransaksi.length === 0
+            ? "Belum ada transaksi. Klik “+ Transaksi” untuk mulai mencatat."
+            : "Tidak ada transaksi yang cocok dengan filter.";
+        ul.appendChild(buatElemen("li", "kosong", teks));
     }
 
     hasil.forEach((t) => ul.appendChild(buatItemTransaksi(t, true)));
+
+    const masuk = jumlahkan(hasil.filter((t) => t.jenis === "pemasukan"));
+    const keluar = jumlahkan(hasil.filter((t) => t.jenis === "pengeluaran"));
+    $("info-filter").textContent =
+        `${hasil.length} transaksi · masuk ${formatRupiah(masuk)} · keluar ${formatRupiah(keluar)}`;
+}
+
+// Opsi filter kategori mengikuti filter jenis
+function isiFilterKategori() {
+    const select = $("filter-kategori");
+    const pilihanLama = select.value;
+    const jenis = $("filter-jenis").value;
+
+    let daftar;
+    if (jenis === "semua") {
+        // Gabungan kedua jenis tanpa duplikat ("Lainnya" ada di keduanya)
+        daftar = [...new Set([...KATEGORI.pemasukan, ...KATEGORI.pengeluaran])];
+    } else {
+        daftar = KATEGORI[jenis];
+    }
+
+    isiOpsiKategori(select, daftar, "Semua kategori", "semua");
+    select.value = daftar.includes(pilihanLama) ? pilihanLama : "semua";
+}
+
+function resetFilter() {
+    $("filter-cari").value = "";
+    $("filter-jenis").value = "semua";
+    $("filter-dari").value = "";
+    $("filter-sampai").value = "";
+    isiFilterKategori();
+    $("filter-kategori").value = "semua";
+    renderDaftar();
 }
 
 // ----- Daftar tagihan -----
@@ -580,6 +662,17 @@ $("form-transaksi").addEventListener("input", hapusErrorSaatDiubah);
 $("form-tagihan").addEventListener("submit", simpanTagihan);
 $("form-tagihan").addEventListener("input", hapusErrorSaatDiubah);
 
+// Filter transaksi
+$("filter-cari").addEventListener("input", renderDaftar);
+$("filter-jenis").addEventListener("change", () => {
+    isiFilterKategori();
+    renderDaftar();
+});
+$("filter-kategori").addEventListener("change", renderDaftar);
+$("filter-dari").addEventListener("change", renderDaftar);
+$("filter-sampai").addEventListener("change", renderDaftar);
+$("filter-reset").addEventListener("click", resetFilter);
+
 // Filter status tagihan
 document.querySelectorAll("#filter-status button").forEach((tombol) => {
     tombol.addEventListener("click", () => {
@@ -595,6 +688,7 @@ document.querySelectorAll("#filter-status button").forEach((tombol) => {
 // SAAT HALAMAN DIBUKA
 // =====================================================
 muatData();
+isiFilterKategori();
 $("tanggal-hari-ini").textContent = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
     day: "numeric",

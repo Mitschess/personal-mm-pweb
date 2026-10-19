@@ -32,3 +32,8 @@
 - **Prompt:** "coba implement js" (versi pertama: tagihan + tandai lunas), "coba buat web baru yang implement freelance money management" (ditambah jatuh tempo dan status terlambat)
 - **Dipakai:** `simpanTagihan()`, `validasiTagihan()`, `tandaiLunas()`, `hapusTagihan()`, `statusTagihan()`, `teksStatus()`, `renderTagihan()`, total piutang di `hitungRingkasan()`
 - **Diubah:** — (alasan memakai `tagihanId` ada di PROSES.md bagian keputusan desain)
+
+### 5. Bonus: edit transaksi dan filter
+- **Prompt:** "coba buat web baru yang implement freelance money management"
+- **Dipakai:** mode edit di `bukaDialogTransaksi()` dan `simpanTransaksi()` (hidden input `transaksi-id`), `ambilTransaksiTerfilter()`, `isiFilterKategori()`, `resetFilter()`
+- **Diubah:** —

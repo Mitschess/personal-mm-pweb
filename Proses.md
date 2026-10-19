@@ -15,3 +15,5 @@
 13. Menambah menu Tagihan dan form tagihan klien dengan jatuh tempo
 14. Tagihan yang ditandai lunas otomatis menjadi pemasukan
 15. Menampilkan total piutang dan tagihan yang terlambat
+16. Menambah fitur edit transaksi
+17. Menambah filter jenis, kategori, rentang tanggal, dan pencarian catatan

@@ -98,9 +98,32 @@
 
             </section>
 
-            <!-- ===== Halaman: Transaksi (W2, W3) ===== -->
+            <!-- ===== Halaman: Transaksi (W2, W3, filter) ===== -->
             <section class="halaman" id="halaman-transaksi">
                 <div class="panel">
+                    <div class="filter">
+                        <label class="filter-cari">Cari catatan
+                            <input type="search" id="filter-cari" placeholder="contoh: hosting">
+                        </label>
+                        <label>Jenis
+                            <select id="filter-jenis">
+                                <option value="semua">Semua jenis</option>
+                                <option value="pemasukan">Pemasukan</option>
+                                <option value="pengeluaran">Pengeluaran</option>
+                            </select>
+                        </label>
+                        <label>Kategori
+                            <select id="filter-kategori"></select>
+                        </label>
+                        <label>Dari
+                            <input type="date" id="filter-dari">
+                        </label>
+                        <label>Sampai
+                            <input type="date" id="filter-sampai">
+                        </label>
+                        <button class="btn btn-garis" id="filter-reset">Reset</button>
+                    </div>
+                    <p class="info-filter" id="info-filter"></p>
                     <!-- Diisi oleh JavaScript, terbaru di atas -->
                     <ul class="daftar" id="daftar-transaksi"></ul>
                 </div>
@@ -124,13 +147,16 @@
         <footer class="footer">Hilmi Taqiyuddin Haq &middot; 5053251012</footer>
     </div>
 
-    <!-- ===== Dialog: tambah transaksi (W1, W6) ===== -->
+    <!-- ===== Dialog: tambah / edit transaksi (W1, W6) ===== -->
     <dialog id="dialog-transaksi">
         <form id="form-transaksi" novalidate>
             <div class="dialog-kepala">
                 <h2 id="judul-dialog-transaksi">Tambah Transaksi</h2>
                 <button type="button" class="btn-tutup" data-tutup aria-label="Tutup">&times;</button>
             </div>
+
+            <!-- Terisi saat edit, kosong saat tambah -->
+            <input type="hidden" id="transaksi-id">
 
             <div class="pilih-jenis">
                 <input type="radio" name="jenis" id="jenis-pemasukan" value="pemasukan">
