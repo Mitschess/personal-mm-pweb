@@ -1,0 +1,838 @@
+/* ===== Variabel warna & font (earth tone) ===== */
+:root {
+    --luar: #d3c9ba;           /* latar di luar bingkai aplikasi */
+    --tanah: #2b2620;          /* kartu saldo */
+    --pasir: #efe7da;          /* latar kontrol (segmen, pilihan jenis, bar budget) */
+    --krem: #fbf7f1;           /* bingkai aplikasi & dialog */
+    --panel: #ffffff;          /* panel & kartu di dalam bingkai */
+    --garis: #e7dccb;
+    --teks: #2b2620;
+    --teks-redup: #81715c;
+    --liat: #b8623b;           /* warna utama (tanah liat / terakota) */
+    --liat-gelap: #9a4f2e;
+    --sage: #5d7140;           /* pemasukan, lunas */
+    --sage-muda: #e7ebdb;
+    --rust: #a5432d;           /* pengeluaran, terlambat, error */
+    --rust-muda: #f5e1d9;
+    --oker: #93661c;           /* piutang, belum dibayar */
+    --oker-muda: #f4e6c8;
+    --radius: 16px;
+    --radius-bingkai: 24px;
+    --bayangan: 0 1px 2px rgba(43, 38, 32, 0.04), 0 6px 20px rgba(43, 38, 32, 0.05);
+    --font-judul: "Fraunces", Georgia, serif;
+    --font-isi: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ===== Dasar ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-isi);
+    background-color: var(--luar);
+    color: var(--teks);
+    line-height: 1.5;
+    padding: 32px; /* jarak bingkai aplikasi dari tepi layar */
+}
+
+h2 {
+    font-family: var(--font-judul);
+    font-weight: 600;
+    font-size: 1.15rem;
+}
+
+:focus-visible {
+    outline: 2px solid var(--liat);
+    outline-offset: 2px;
+}
+
+/* ===== Bingkai aplikasi ===== */
+/* Seluruh aplikasi ada di dalam kotak ini; margin auto membuatnya di tengah */
+.app {
+    max-width: 1280px;
+    min-height: calc(100vh - 64px); /* setinggi layar dikurangi padding body */
+    margin: 0 auto;
+    background-color: var(--krem);
+    border-radius: var(--radius-bingkai);
+    box-shadow: 0 12px 40px rgba(43, 38, 32, 0.12);
+    /* navbar di atas, main mengisi tengah, footer di bawah */
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Navbar (atas, di dalam bingkai) ===== */
+.navbar {
+    position: sticky; /* tetap menempel di atas saat halaman di-scroll */
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 20px 48px;
+    background-color: var(--krem);
+    border-bottom: 1px solid var(--garis);
+    border-radius: var(--radius-bingkai) var(--radius-bingkai) 0 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background-color: var(--liat);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-judul);
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.brand strong {
+    display: block;
+    font-family: var(--font-judul);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.brand small {
+    color: var(--teks-redup);
+    font-size: 0.75rem;
+}
+
+/* margin-left: auto mendorong menu & tombol ke sisi kanan */
+nav {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--teks-redup);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Ikon hanya dipakai di layar HP */
+.nav-item svg {
+    display: none;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.nav-item:hover {
+    color: var(--teks);
+}
+
+.nav-item.aktif {
+    color: var(--teks);
+    font-weight: 600;
+}
+
+/* Garis kecil di bawah menu yang aktif */
+.nav-item.aktif::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background-color: var(--liat);
+}
+
+/* Jumlah tagihan belum dibayar */
+.badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background-color: var(--liat);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+}
+
+.badge:empty {
+    display: none;
+}
+
+.navbar-aksi {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== Konten utama ===== */
+main {
+    flex: 1; /* mengisi sisa tinggi supaya footer terdorong ke bawah */
+    padding: 36px 48px 40px;
+}
+
+.footer {
+    text-align: center;
+    padding: 0 48px 28px;
+    font-size: 0.8rem;
+    color: var(--teks-redup);
+}
+
+.topbar {
+    margin-bottom: 24px;
+}
+
+.topbar-tanggal {
+    font-size: 0.85rem;
+    color: var(--teks-redup);
+}
+
+.topbar h1 {
+    font-family: var(--font-judul);
+    font-weight: 600;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+/* Hanya halaman dengan class "aktif" yang tampil */
+.halaman {
+    display: none;
+}
+
+.halaman.aktif {
+    display: grid;
+    gap: 20px;
+}
+
+.panel {
+    background-color: var(--panel);
+    border: 1px solid var(--garis);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--bayangan);
+    min-width: 0;
+}
+
+.panel-kepala {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+/* minmax(0, 1fr): kolom tidak ikut melebar karena isi yang panjang */
+.grid-dua {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.teks-redup {
+    color: var(--teks-redup);
+    font-size: 0.88rem;
+    margin: 4px 0 18px;
+}
+
+/* ===== Kartu ringkasan ===== */
+.ringkasan {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.kartu {
+    --aksen: var(--teks);
+    background-color: var(--panel);
+    border: 1px solid var(--garis);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--bayangan);
+    min-width: 0;
+}
+
+.kartu-pemasukan { --aksen: var(--sage); }
+.kartu-pengeluaran { --aksen: var(--rust); }
+.kartu-piutang { --aksen: var(--oker); }
+
+.kartu-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--teks-redup);
+}
+
+/* Titik warna kecil sebelum label */
+.kartu-label::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--aksen);
+}
+
+.kartu-angka {
+    font-family: var(--font-judul);
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--aksen);
+    margin: 8px 0 2px;
+    overflow-wrap: anywhere;
+}
+
+.kartu-sub {
+    font-size: 0.8rem;
+    color: var(--teks-redup);
+}
+
+/* Kartu saldo paling menonjol */
+.kartu-saldo {
+    --aksen: #e08a62;
+    background-color: var(--tanah);
+    border-color: var(--tanah);
+}
+
+.kartu-saldo .kartu-angka {
+    color: #ffffff;
+    font-size: 1.9rem;
+}
+
+.kartu-saldo .kartu-label,
+.kartu-saldo .kartu-sub {
+    color: #b2a28b;
+}
+
+.kartu-saldo .kartu-angka.negatif {
+    color: #f0a48a;
+}
+
+/* ===== Tombol ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-utama {
+    background-color: var(--liat);
+    color: #ffffff;
+}
+
+.btn-utama:hover {
+    background-color: var(--liat-gelap);
+}
+
+.btn-garis {
+    background-color: transparent;
+    border-color: var(--garis);
+    color: var(--teks);
+}
+
+.btn-garis:hover {
+    background-color: var(--krem);
+    border-color: var(--teks-redup);
+}
+
+/* Tombol kecil di dalam item daftar */
+.btn-ikon {
+    padding: 6px 10px;
+    border: 1px solid var(--garis);
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: var(--teks-redup);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-ikon:hover {
+    color: var(--teks);
+    border-color: var(--teks-redup);
+}
+
+.btn-ikon-hapus:hover {
+    color: var(--rust);
+    border-color: var(--rust);
+}
+
+.btn-ikon-lunas {
+    background-color: var(--sage);
+    border-color: var(--sage);
+    color: #ffffff;
+}
+
+.btn-ikon-lunas:hover {
+    background-color: #4b5c33;
+    border-color: #4b5c33;
+    color: #ffffff;
+}
+
+.link {
+    background: none;
+    border: none;
+    color: var(--liat);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* ===== Daftar (transaksi & tagihan) — item dibuat oleh JS ===== */
+.daftar {
+    list-style: none;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--garis);
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.item-ikon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+
+.item-pemasukan .item-ikon { background-color: var(--sage-muda); color: var(--sage); }
+.item-pengeluaran .item-ikon { background-color: var(--rust-muda); color: var(--rust); }
+.item-tagihan .item-ikon { background-color: var(--oker-muda); color: var(--oker); }
+.item-tagihan.status-terlambat .item-ikon { background-color: var(--rust-muda); color: var(--rust); }
+.item-tagihan.status-lunas .item-ikon { background-color: var(--sage-muda); color: var(--sage); }
+
+.item-info {
+    flex: 1;
+    min-width: 0; /* supaya teks panjang bisa dipotong (...) */
+}
+
+.item-info strong {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-info small {
+    color: var(--teks-redup);
+    font-size: 0.8rem;
+}
+
+.item-kanan {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.nominal {
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.nominal-pemasukan { color: var(--sage); }
+.nominal-pengeluaran { color: var(--rust); }
+.status-lunas .nominal { color: var(--teks-redup); }
+
+.item-aksi {
+    display: flex;
+    gap: 6px;
+}
+
+.label-status {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.label-status.belum { background-color: var(--oker-muda); color: var(--oker); }
+.label-status.terlambat { background-color: var(--rust-muda); color: var(--rust); }
+.label-status.lunas { background-color: var(--sage-muda); color: var(--sage); }
+
+/* Teks saat daftar kosong */
+.kosong {
+    list-style: none;
+    text-align: center;
+    color: var(--teks-redup);
+    font-size: 0.9rem;
+    padding: 28px 16px;
+}
+
+/* ===== Filter transaksi ===== */
+.filter {
+    display: grid;
+    grid-template-columns: 2fr repeat(4, minmax(0, 1fr)) auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.filter label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    min-width: 0;
+}
+
+.info-filter {
+    font-size: 0.82rem;
+    color: var(--teks-redup);
+    padding: 14px 0 6px;
+    border-bottom: 1px solid var(--garis);
+}
+
+/* ===== Filter status tagihan (segmented control) ===== */
+.segmen {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 8px;
+    background-color: var(--pasir);
+    border-radius: 12px;
+}
+
+.segmen button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--teks-redup);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.segmen button.aktif {
+    background-color: #ffffff;
+    color: var(--teks);
+    box-shadow: 0 1px 3px rgba(43, 38, 32, 0.1);
+}
+
+/* ===== Budget ===== */
+.daftar-budget {
+    display: grid;
+    /* min(300px, 100%): di layar sempit kolom tidak melebihi lebar panel */
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 18px 28px;
+    margin-top: 8px;
+}
+
+/* Teks "Belum ada budget" mengisi seluruh lebar grid, bukan satu kolom saja */
+.daftar-budget .kosong {
+    grid-column: 1 / -1;
+}
+
+.budget-kepala {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.budget-kepala span:last-child {
+    color: var(--teks-redup);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.budget-bar {
+    height: 8px;
+    margin: 8px 0 6px;
+    border-radius: 999px;
+    background-color: var(--pasir);
+    overflow: hidden;
+}
+
+.budget-isi {
+    height: 100%;
+    border-radius: 999px;
+    background-color: var(--sage);
+}
+
+.budget-mendekati .budget-isi { background-color: var(--oker); }
+.budget-lewat .budget-isi { background-color: var(--rust); }
+
+.budget-ket {
+    font-size: 0.78rem;
+    color: var(--teks-redup);
+}
+
+.budget-mendekati .budget-ket { color: var(--oker); font-weight: 600; }
+.budget-lewat .budget-ket { color: var(--rust); font-weight: 600; }
+
+/* Isian budget di halaman pengaturan */
+#form-budget {
+    display: grid;
+    gap: 12px;
+}
+
+#isian-budget {
+    display: grid;
+    gap: 10px;
+}
+
+.field-budget {
+    display: grid;
+    grid-template-columns: 1fr 170px;
+    align-items: center;
+    gap: 12px;
+}
+
+.field-budget label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+#form-budget .btn {
+    justify-self: start;
+}
+
+.aksi-backup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* ===== Form & input ===== */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.field > label {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.opsional {
+    color: var(--teks-redup);
+    font-weight: 400;
+}
+
+input,
+select {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--garis);
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: var(--teks);
+    font: inherit;
+    font-size: 0.92rem;
+}
+
+input::placeholder {
+    color: #b3a593;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--liat);
+    box-shadow: 0 0 0 3px rgba(184, 98, 59, 0.18);
+}
+
+/* Ditambahkan JS pada input yang tidak valid */
+.tidak-valid {
+    border-color: var(--rust);
+    background-color: #fdf5f2;
+}
+
+/* Pesan error validasi (diisi JS); disembunyikan kalau kosong */
+.error {
+    color: var(--rust);
+    font-size: 0.78rem;
+}
+
+.error:empty {
+    display: none;
+}
+
+.baris-dua {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* Pilihan pemasukan / pengeluaran: radio button bergaya tombol */
+.pilih-jenis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    background-color: var(--pasir);
+    border-radius: 12px;
+}
+
+/* Radio disembunyikan. width/height 0 wajib: kalau tidak, ikut aturan
+   "input { width: 100% }" dan membuat dialog bisa di-scroll ke samping */
+.pilih-jenis input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pilih-jenis label {
+    padding: 9px;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--teks-redup);
+    cursor: pointer;
+}
+
+#jenis-pemasukan:checked + label { background-color: var(--sage); color: #ffffff; }
+#jenis-pengeluaran:checked + label { background-color: var(--rust); color: #ffffff; }
+
+.pilih-jenis input:focus-visible + label {
+    outline: 2px solid var(--liat);
+    outline-offset: 2px;
+}
+
+/* ===== Dialog (pop-up form) ===== */
+dialog {
+    width: min(480px, calc(100% - 32px));
+    margin: auto;
+    padding: 0; /* klik di luar form = klik backdrop */
+    border: none;
+    border-radius: 20px;
+    background-color: var(--krem);
+    color: var(--teks);
+    box-shadow: 0 24px 60px rgba(43, 38, 32, 0.3);
+}
+
+dialog::backdrop {
+    background-color: rgba(43, 38, 32, 0.45);
+}
+
+dialog form {
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+}
+
+.dialog-kepala {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dialog-kepala h2 {
+    font-size: 1.35rem;
+}
+
+.btn-tutup {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--teks-redup);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.btn-tutup:hover {
+    background-color: var(--pasir);
+    color: var(--teks);
+}
+
+.dialog-aksi {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* ===== Toast (notifikasi kecil) ===== */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 100;
+    max-width: calc(100% - 32px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    background-color: var(--tanah);
+    color: var(--pasir);
+    font-size: 0.9rem;
+    box-shadow: 0 10px 30px rgba(43, 38, 32, 0.25);
+    opacity: 0;
+    transform: translate(-50%, 16px);
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.toast.tampil {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.toast.peringatan { background-color: var(--oker); color: #ffffff; }
+.toast.error { background-color: var(--rust); color: #ffffff; }
