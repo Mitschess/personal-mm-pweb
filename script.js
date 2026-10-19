@@ -1,3 +1,7 @@
+// =====================================================
+// Kas Freelance — pencatat keuangan untuk pekerja lepas
+// =====================================================
+
 // ===== Konstanta =====
 // Kunci localStorage diberi awalan "fmm_" supaya tidak bentrok dengan aplikasi lain
 const KUNCI = {

@@ -45,3 +45,10 @@
   - Bug: budget terpakai tepat 100% ditulis "hampir habis" → `statusBudget()` membandingkan nominal langsung, bukan persen yang dibulatkan
   - Bug: teks "Belum ada budget" terjepit di satu kolom grid → `grid-column: 1 / -1`
   - Teks budget terlipat karena kolom hanya 240px → `minmax(min(300px, 100%), 1fr)`
+
+### 7. Bonus: tampilan responsif
+- **Prompt:** "oke apakah anda bisa jadikan navbar di kiri menjadi diatas", "apakah anda bisa buat agar appsnya di tengah gitu dan ada navbar diatas"
+- **Dipakai:** media query ≤1140px (navbar dua baris), ≤768px (bingkai memenuhi layar), ≤600px (logo saja, menu berikon), ≤480px (kartu, filter, form menyesuaikan)
+- **Diubah:**
+  - Breakpoint navbar dua baris dinaikkan ke 1140px karena di lebar 1000–1100px menu tidak muat
+  - Di versi pertama halaman bisa di-scroll ke samping → kolom grid memakai `minmax(0, 1fr)`

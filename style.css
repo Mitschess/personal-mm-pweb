@@ -836,3 +836,180 @@ dialog form {
 
 .toast.peringatan { background-color: var(--oker); color: #ffffff; }
 .toast.error { background-color: var(--rust); color: #ffffff; }
+
+/* ===== Responsif ===== */
+@media (max-width: 1100px) {
+    .ringkasan {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-dua {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .filter {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .filter-cari {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 1140px) {
+    /* Navbar jadi dua baris: logo + tombol di atas, menu selebar bingkai di bawah */
+    .navbar {
+        flex-wrap: wrap;
+        row-gap: 12px;
+        padding: 16px 28px 0;
+    }
+
+    .brand small {
+        display: none;
+    }
+
+    nav {
+        order: 3; /* pindah ke urutan terakhir = baris kedua */
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .nav-item {
+        flex: 1;
+        padding: 10px 8px 12px;
+    }
+
+    .navbar-aksi {
+        margin-left: auto;
+    }
+
+    main {
+        padding: 28px 28px 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Di HP bingkai memenuhi layar, tanpa jarak dan sudut membulat */
+    body {
+        padding: 0;
+    }
+
+    .app {
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .navbar {
+        padding: 10px 12px 0;
+        border-radius: 0;
+    }
+
+    main {
+        padding: 20px 16px 24px;
+    }
+
+    .footer {
+        padding: 0 16px 24px;
+    }
+
+    .topbar h1 {
+        font-size: 1.7rem;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Logo saja tanpa tulisan, supaya tombol aksi muat di sebelahnya */
+    .brand strong {
+        display: none;
+    }
+
+    .brand-logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+    }
+
+    .navbar-aksi .btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Empat menu dibagi rata, ikon di atas teks */
+    .nav-item {
+        flex-direction: column;
+        gap: 3px;
+        padding: 6px 4px 10px;
+        font-size: 0.72rem;
+    }
+
+    .nav-item svg {
+        display: block;
+    }
+
+    .nav-item.aktif svg {
+        color: var(--liat);
+    }
+
+    .badge {
+        position: absolute;
+        top: 2px;
+        left: calc(50% + 6px);
+        min-width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ringkasan {
+        gap: 10px;
+    }
+
+    .kartu {
+        padding: 14px;
+    }
+
+    /* Kartu saldo selebar layar */
+    .kartu-saldo {
+        grid-column: 1 / -1;
+    }
+
+    .kartu-angka {
+        font-size: 1.15rem;
+    }
+
+    .kartu-saldo .kartu-angka {
+        font-size: 1.6rem;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .filter {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter #filter-reset {
+        grid-column: 1 / -1;
+    }
+
+    /* Tombol aksi item turun ke baris baru */
+    .item {
+        flex-wrap: wrap;
+    }
+
+    .item-aksi {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .baris-dua {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .field-budget {
+        grid-template-columns: 1fr 130px;
+    }
+}

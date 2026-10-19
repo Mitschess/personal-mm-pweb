@@ -19,3 +19,46 @@
 17. Menambah filter jenis, kategori, rentang tanggal, dan pencarian catatan
 18. Menambah menu Pengaturan untuk budget per kategori beserta peringatannya
 19. Menambah ekspor dan impor data JSON
+20. Membuat tampilan responsif sampai layar HP 360px
+
+
+## Rancangan struktur data
+
+Data disimpan di localStorage dalam tiga kunci. Setiap kunci berisi teks hasil `JSON.stringify()` dan dibaca kembali dengan `JSON.parse()`. Awalan `fmm_` dipakai supaya tidak bentrok dengan aplikasi versi pertama, karena keduanya berjalan di domain yang sama.
+
+**`fmm_transaksi`**: array objek transaksi
+
+```js
+{
+  id: 1760850000000,          // Date.now() saat dibuat, unik
+  tanggal: "2026-10-12",
+  jenis: "pengeluaran",       // "pemasukan" | "pengeluaran"
+  kategori: "Software & Tools",
+  nominal: 150000,            // angka, bukan teks "Rp 150.000"
+  catatan: "Langganan Figma",
+  tagihanId: 1760840000000    // hanya ada kalau transaksi ini dari tagihan yang dilunasi
+}
+```
+
+**`fmm_tagihan`**: array objek tagihan (fitur khas)
+
+```js
+{
+  id: 1760840000000,
+  klien: "CV Sinar",
+  proyek: "Website company profile",
+  nominal: 4000000,
+  tanggal: "2026-10-15",      // tanggal tagihan dikirim
+  jatuhTempo: "2026-10-30",
+  status: "belum dibayar",    // "belum dibayar" | "lunas"
+  tanggalLunas: null          // diisi saat ditandai lunas
+}
+```
+
+**`fmm_budget`**: objek batas pengeluaran per bulan (bonus)
+
+```js
+{ "Software & Tools": 200000, "Makan": 600000 }
+```
+
+Status "terlambat" tidak disimpan. Status itu dihitung setiap kali halaman dirender (`statusTagihan()`: belum dibayar dan jatuh tempo sebelum hari ini), supaya otomatis berubah ketika hari berganti.
