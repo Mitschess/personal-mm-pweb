@@ -1,5 +1,3 @@
-# PROSES
-
 ## Langkah pengerjaan
 
 1. Membuat README yang berisi identitas dan permasalahan dari persona yang didapat
@@ -12,3 +10,5 @@
 8. Menampilkan daftar transaksi, terbaru di atas, dalam format Rupiah (W2)
 9. Menambah tombol hapus dengan konfirmasi (W3)
 10. Menyimpan dan memuat data dari localStorage (W4)
+11. Menghitung total pemasukan, pengeluaran, dan saldo secara otomatis (W5)
+12. Menambah validasi form dengan pesan error di halaman (W6)

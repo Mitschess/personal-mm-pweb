@@ -63,6 +63,11 @@ function tanggalHariIni() {
     return `${d.getFullYear()}-${bulan}-${hari}`;
 }
 
+// Total nominal dari sebuah array transaksi
+function jumlahkan(daftar) {
+    return daftar.reduce((total, item) => total + item.nominal, 0);
+}
+
 // Membuat elemen HTML sekaligus class dan teksnya
 function buatElemen(tag, className, teks) {
     const el = document.createElement(tag);
@@ -101,6 +106,24 @@ function tampilkanToast(pesan, tipe = "info") {
     timerToast = setTimeout(() => toast.classList.remove("tampil"), 3500);
 }
 
+// ===== Validasi (W6) =====
+function tampilkanError(input, pesan) {
+    $("error-" + input.id).textContent = pesan;
+    input.classList.add("tidak-valid");
+}
+
+function hapusError(form) {
+    form.querySelectorAll(".error").forEach((el) => (el.textContent = ""));
+    form.querySelectorAll(".tidak-valid").forEach((el) => el.classList.remove("tidak-valid"));
+}
+
+// Error di satu field hilang begitu field itu diubah
+function hapusErrorSaatDiubah(event) {
+    event.target.classList.remove("tidak-valid");
+    const elError = $("error-" + event.target.id);
+    if (elError) elError.textContent = "";
+}
+
 // ===== Navigasi halaman =====
 function tampilkanHalaman(nama) {
     if (!JUDUL_HALAMAN[nama]) nama = "dashboard";
@@ -117,9 +140,7 @@ function tampilkanHalaman(nama) {
     window.scrollTo(0, 0);
 }
 
-// =====================================================
 // TRANSAKSI (W1, W3)
-// =====================================================
 function ambilJenis() {
     const terpilih = document.querySelector('input[name="jenis"]:checked');
     return terpilih ? terpilih.value : "";
@@ -133,13 +154,39 @@ function gantiOpsiKategoriForm() {
 function bukaDialogTransaksi() {
     const form = $("form-transaksi");
     form.reset();
+    hapusError(form);
     gantiOpsiKategoriForm();
     $("transaksi-tanggal").value = tanggalHariIni();
     $("dialog-transaksi").showModal();
 }
 
+function validasiTransaksi() {
+    const form = $("form-transaksi");
+    hapusError(form);
+    let valid = true;
+
+    const tanggal = $("transaksi-tanggal");
+    const kategori = $("transaksi-kategori");
+    const nominal = $("transaksi-nominal");
+
+    if (tanggal.value === "") {
+        tampilkanError(tanggal, "Tanggal wajib diisi.");
+        valid = false;
+    }
+    if (kategori.value === "") {
+        tampilkanError(kategori, "Pilih kategori.");
+        valid = false;
+    }
+    if (nominal.value === "" || Number(nominal.value) <= 0) {
+        tampilkanError(nominal, "Nominal harus lebih dari 0.");
+        valid = false;
+    }
+    return valid;
+}
+
 function simpanTransaksi(event) {
     event.preventDefault(); // cegah halaman reload saat form disubmit
+    if (!validasiTransaksi()) return;
 
     const transaksiBaru = {
         id: Date.now(),
@@ -166,9 +213,25 @@ function hapusTransaksi(id) {
     tampilkanToast("Transaksi dihapus.");
 }
 
-// =====================================================
 // RENDER
-// =====================================================
+
+// ----- Ringkasan (W5) -----
+function hitungRingkasan() {
+    const pemasukan = daftarTransaksi.filter((t) => t.jenis === "pemasukan");
+    const pengeluaran = daftarTransaksi.filter((t) => t.jenis === "pengeluaran");
+
+    const totalPemasukan = jumlahkan(pemasukan);
+    const totalPengeluaran = jumlahkan(pengeluaran);
+    const saldo = totalPemasukan - totalPengeluaran;
+
+    $("total-pemasukan").textContent = formatRupiah(totalPemasukan);
+    $("total-pengeluaran").textContent = formatRupiah(totalPengeluaran);
+    $("saldo").textContent = formatRupiah(saldo);
+    $("saldo").classList.toggle("negatif", saldo < 0);
+
+    $("info-pemasukan").textContent = `${pemasukan.length} transaksi`;
+    $("info-pengeluaran").textContent = `${pengeluaran.length} transaksi`;
+}
 
 // ----- Satu baris transaksi -----
 function buatItemTransaksi(t, denganAksi) {
@@ -207,16 +270,34 @@ function renderDaftar() {
     hasil.forEach((t) => ul.appendChild(buatItemTransaksi(t, true)));
 }
 
+// ----- Dashboard -----
+function renderDashboard() {
+    // 5 transaksi terbaru ([...] menyalin array supaya data asli tidak ikut terurut)
+    const terbaru = [...daftarTransaksi].sort(urutkanTerbaru).slice(0, 5);
+
+    const ulTransaksi = $("dashboard-transaksi");
+    ulTransaksi.innerHTML = "";
+    if (terbaru.length === 0) {
+        ulTransaksi.appendChild(buatElemen("li", "kosong", "Belum ada transaksi."));
+    }
+    terbaru.forEach((t) => ulTransaksi.appendChild(buatItemTransaksi(t, false)));
+}
+
 // Dipanggil setiap kali data berubah
 function renderSemua() {
+    hitungRingkasan();
+    renderDashboard();
     renderDaftar();
 }
 
-// =====================================================
 // EVENT LISTENER
-// =====================================================
 document.querySelectorAll(".nav-item").forEach((tombol) => {
     tombol.addEventListener("click", () => tampilkanHalaman(tombol.dataset.halaman));
+});
+
+// Tombol "Lihat semua" di dashboard
+document.querySelectorAll("[data-ke]").forEach((tombol) => {
+    tombol.addEventListener("click", () => tampilkanHalaman(tombol.dataset.ke));
 });
 
 $("btn-tambah-transaksi").addEventListener("click", () => bukaDialogTransaksi());
@@ -238,10 +319,9 @@ document.querySelectorAll('input[name="jenis"]').forEach((radio) => {
 });
 
 $("form-transaksi").addEventListener("submit", simpanTransaksi);
+$("form-transaksi").addEventListener("input", hapusErrorSaatDiubah);
 
-// =====================================================
 // SAAT HALAMAN DIBUKA
-// =====================================================
 muatData();
 $("tanggal-hari-ini").textContent = new Date().toLocaleDateString("id-ID", {
     weekday: "long",

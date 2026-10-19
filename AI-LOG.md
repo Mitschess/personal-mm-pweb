@@ -24,3 +24,8 @@
 - **Diubah:**
   - Dropdown jenis diganti dua radio button bergaya tombol, supaya tinggal klik pemasukan/pengeluaran
   - Bug: radio yang disembunyikan ikut aturan `input { width: 100% }` sehingga dialog bisa di-scroll ke samping → diberi `width: 0; height: 0` (detail di PROSES.md)
+
+### 3. W5–W6: ringkasan dan validasi
+- **Prompt:** "coba implement js", "coba buat web baru yang implement freelance money management"
+- **Dipakai:** `hitungRingkasan()` dan `jumlahkan()` (filter + reduce), `renderDashboard()`, `validasiTransaksi()`, `tampilkanError()`, `hapusError()`, `hapusErrorSaatDiubah()`
+- **Diubah:** —
