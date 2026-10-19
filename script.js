@@ -2,6 +2,7 @@
 // Kunci localStorage diberi awalan "fmm_" supaya tidak bentrok dengan aplikasi lain
 const KUNCI = {
     transaksi: "fmm_transaksi",
+    tagihan: "fmm_tagihan",
 };
 
 // Kategori tetap untuk tiap jenis transaksi
@@ -13,11 +14,15 @@ const KATEGORI = {
 const JUDUL_HALAMAN = {
     dashboard: "Dashboard",
     transaksi: "Transaksi",
+    tagihan: "Tagihan Klien",
 };
 
 // ===== Data di memori =====
-// transaksi: { id, tanggal, jenis, kategori, nominal, catatan }
+// transaksi: { id, tanggal, jenis, kategori, nominal, catatan, tagihanId? }
+// tagihan:   { id, klien, proyek, nominal, tanggal, jatuhTempo, status, tanggalLunas }
 let daftarTransaksi = [];
+let daftarTagihan = [];
+let filterStatusTagihan = "semua";
 
 // Singkatan untuk document.getElementById
 const $ = (id) => document.getElementById(id);
@@ -25,15 +30,18 @@ const $ = (id) => document.getElementById(id);
 // ===== Simpan & muat (W4) =====
 function simpanData() {
     localStorage.setItem(KUNCI.transaksi, JSON.stringify(daftarTransaksi));
+    localStorage.setItem(KUNCI.tagihan, JSON.stringify(daftarTagihan));
 }
 
 function muatData() {
     try {
         // getItem mengembalikan null kalau belum ada data -> pakai nilai awal
         daftarTransaksi = JSON.parse(localStorage.getItem(KUNCI.transaksi)) || [];
+        daftarTagihan = JSON.parse(localStorage.getItem(KUNCI.tagihan)) || [];
     } catch (err) {
         // Kalau isi localStorage rusak (bukan JSON), mulai dari kosong
         daftarTransaksi = [];
+        daftarTagihan = [];
     }
 }
 
@@ -63,7 +71,13 @@ function tanggalHariIni() {
     return `${d.getFullYear()}-${bulan}-${hari}`;
 }
 
-// Total nominal dari sebuah array transaksi
+// Jumlah hari dari tanggal a ke tanggal b (bisa negatif)
+function selisihHari(a, b) {
+    const satuHari = 24 * 60 * 60 * 1000;
+    return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / satuHari);
+}
+
+// Total nominal dari sebuah array transaksi/tagihan
 function jumlahkan(daftar) {
     return daftar.reduce((total, item) => total + item.nominal, 0);
 }
@@ -207,7 +221,23 @@ function simpanTransaksi(event) {
 }
 
 function hapusTransaksi(id) {
-    if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
+    const transaksi = daftarTransaksi.find((t) => t.id === id);
+    if (!transaksi) return;
+
+    let pesan = "Yakin ingin menghapus transaksi ini?";
+    if (transaksi.tagihanId) {
+        pesan += "\nTagihan asalnya akan kembali berstatus \"belum dibayar\".";
+    }
+    if (!confirm(pesan)) return;
+
+    // Transaksi dari tagihan lunas dihapus -> tagihan kembali menjadi piutang
+    if (transaksi.tagihanId) {
+        const tagihan = daftarTagihan.find((t) => t.id === transaksi.tagihanId);
+        if (tagihan) {
+            tagihan.status = "belum dibayar";
+            tagihan.tanggalLunas = null;
+        }
+    }
 
     daftarTransaksi = daftarTransaksi.filter((t) => t.id !== id);
     simpanData();
@@ -216,13 +246,157 @@ function hapusTransaksi(id) {
 }
 
 // =====================================================
+// TAGIHAN KLIEN (fitur khas)
+// =====================================================
+function bukaDialogTagihan() {
+    const form = $("form-tagihan");
+    form.reset();
+    hapusError(form);
+    $("tagihan-tanggal").value = tanggalHariIni();
+    $("dialog-tagihan").showModal();
+}
+
+function validasiTagihan() {
+    const form = $("form-tagihan");
+    hapusError(form);
+    let valid = true;
+
+    const klien = $("tagihan-klien");
+    const proyek = $("tagihan-proyek");
+    const nominal = $("tagihan-nominal");
+    const tanggal = $("tagihan-tanggal");
+    const jatuhTempo = $("tagihan-jatuh-tempo");
+
+    if (klien.value.trim() === "") {
+        tampilkanError(klien, "Nama klien wajib diisi.");
+        valid = false;
+    }
+    if (proyek.value.trim() === "") {
+        tampilkanError(proyek, "Nama proyek wajib diisi.");
+        valid = false;
+    }
+    if (nominal.value === "" || Number(nominal.value) <= 0) {
+        tampilkanError(nominal, "Nominal harus lebih dari 0.");
+        valid = false;
+    }
+    if (tanggal.value === "") {
+        tampilkanError(tanggal, "Tanggal wajib diisi.");
+        valid = false;
+    }
+    if (jatuhTempo.value === "") {
+        tampilkanError(jatuhTempo, "Jatuh tempo wajib diisi.");
+        valid = false;
+    } else if (tanggal.value !== "" && jatuhTempo.value < tanggal.value) {
+        tampilkanError(jatuhTempo, "Jatuh tempo tidak boleh sebelum tanggal tagihan.");
+        valid = false;
+    }
+    return valid;
+}
+
+function simpanTagihan(event) {
+    event.preventDefault();
+    if (!validasiTagihan()) return;
+
+    daftarTagihan.push({
+        id: Date.now(),
+        klien: $("tagihan-klien").value.trim(),
+        proyek: $("tagihan-proyek").value.trim(),
+        nominal: Number($("tagihan-nominal").value),
+        tanggal: $("tagihan-tanggal").value,
+        jatuhTempo: $("tagihan-jatuh-tempo").value,
+        status: "belum dibayar",
+        tanggalLunas: null,
+    });
+
+    simpanData();
+    $("dialog-tagihan").close();
+    renderSemua();
+    tampilkanToast("Tagihan tersimpan sebagai piutang.");
+}
+
+// Tagihan lunas -> otomatis dicatat sebagai transaksi pemasukan
+function tandaiLunas(id) {
+    const tagihan = daftarTagihan.find((t) => t.id === id);
+    if (!tagihan || tagihan.status === "lunas") return;
+
+    tagihan.status = "lunas";
+    tagihan.tanggalLunas = tanggalHariIni();
+
+    daftarTransaksi.push({
+        id: Date.now(),
+        tanggal: tagihan.tanggalLunas, // tanggal uang diterima
+        jenis: "pemasukan",
+        kategori: "Proyek",
+        nominal: tagihan.nominal,
+        catatan: `${tagihan.proyek} — ${tagihan.klien}`,
+        tagihanId: tagihan.id, // penghubung ke tagihan asal
+    });
+
+    simpanData();
+    renderSemua();
+    tampilkanToast(`Lunas! ${formatRupiah(tagihan.nominal)} masuk ke pemasukan.`);
+}
+
+function hapusTagihan(id) {
+    const tagihan = daftarTagihan.find((t) => t.id === id);
+    if (!tagihan) return;
+
+    let pesan = `Hapus tagihan "${tagihan.proyek}"?`;
+    if (tagihan.status === "lunas") {
+        pesan += "\nTransaksi pemasukan dari tagihan ini juga akan dihapus.";
+    }
+    if (!confirm(pesan)) return;
+
+    daftarTagihan = daftarTagihan.filter((t) => t.id !== id);
+    daftarTransaksi = daftarTransaksi.filter((t) => t.tagihanId !== id);
+    simpanData();
+    renderSemua();
+    tampilkanToast("Tagihan dihapus.");
+}
+
+// "lunas", "terlambat" (lewat jatuh tempo), atau "belum"
+function statusTagihan(tagihan) {
+    if (tagihan.status === "lunas") return "lunas";
+    return tagihan.jatuhTempo < tanggalHariIni() ? "terlambat" : "belum";
+}
+
+function teksStatus(tagihan) {
+    const status = statusTagihan(tagihan);
+    if (status === "lunas") {
+        return tagihan.tanggalLunas ? `Lunas ${formatTanggal(tagihan.tanggalLunas)}` : "Lunas";
+    }
+
+    const sisaHari = selisihHari(tanggalHariIni(), tagihan.jatuhTempo);
+    if (status === "terlambat") return `Terlambat ${-sisaHari} hari`;
+    if (sisaHari === 0) return "Jatuh tempo hari ini";
+    return `${sisaHari} hari lagi`;
+}
+
+// Belum lunas di atas (jatuh tempo terdekat dulu), lunas di bawah (terbaru dulu)
+function urutkanTagihan(a, b) {
+    const lunasA = a.status === "lunas";
+    const lunasB = b.status === "lunas";
+    if (lunasA !== lunasB) return lunasA ? 1 : -1;
+    if (!lunasA) return a.jatuhTempo.localeCompare(b.jatuhTempo);
+    return (b.tanggalLunas || "").localeCompare(a.tanggalLunas || "");
+}
+
+function cocokFilterStatus(tagihan) {
+    if (filterStatusTagihan === "semua") return true;
+    if (filterStatusTagihan === "belum") return tagihan.status === "belum dibayar";
+    return statusTagihan(tagihan) === filterStatusTagihan; // "terlambat" atau "lunas"
+}
+
+// =====================================================
 // RENDER
 // =====================================================
 
-// ----- Ringkasan (W5) -----
+// ----- Ringkasan (W5 + total piutang) -----
 function hitungRingkasan() {
     const pemasukan = daftarTransaksi.filter((t) => t.jenis === "pemasukan");
     const pengeluaran = daftarTransaksi.filter((t) => t.jenis === "pengeluaran");
+    const belumLunas = daftarTagihan.filter((t) => t.status === "belum dibayar");
+    const terlambat = belumLunas.filter((t) => statusTagihan(t) === "terlambat");
 
     const totalPemasukan = jumlahkan(pemasukan);
     const totalPengeluaran = jumlahkan(pengeluaran);
@@ -232,9 +406,21 @@ function hitungRingkasan() {
     $("total-pengeluaran").textContent = formatRupiah(totalPengeluaran);
     $("saldo").textContent = formatRupiah(saldo);
     $("saldo").classList.toggle("negatif", saldo < 0);
+    $("total-piutang").textContent = formatRupiah(jumlahkan(belumLunas));
 
     $("info-pemasukan").textContent = `${pemasukan.length} transaksi`;
     $("info-pengeluaran").textContent = `${pengeluaran.length} transaksi`;
+
+    if (daftarTagihan.length === 0) {
+        $("info-piutang").textContent = "Belum ada tagihan";
+    } else if (belumLunas.length === 0) {
+        $("info-piutang").textContent = "Semua tagihan lunas";
+    } else {
+        $("info-piutang").textContent = `${belumLunas.length} tagihan · ${terlambat.length} terlambat`;
+    }
+
+    // Angka di menu Tagihan (kosong = badge disembunyikan lewat CSS)
+    $("badge-tagihan").textContent = belumLunas.length || "";
 }
 
 // ----- Satu baris transaksi -----
@@ -244,7 +430,8 @@ function buatItemTransaksi(t, denganAksi) {
     const ikon = buatElemen("span", "item-ikon", t.jenis === "pemasukan" ? "+" : "−");
 
     const info = buatElemen("div", "item-info");
-    const keterangan = `${t.kategori} · ${formatTanggal(t.tanggal)}`;
+    let keterangan = `${t.kategori} · ${formatTanggal(t.tanggal)}`;
+    if (t.tagihanId) keterangan += " · dari tagihan";
     info.append(buatElemen("strong", "", t.catatan || t.kategori), buatElemen("small", "", keterangan));
 
     const tanda = t.jenis === "pemasukan" ? "+" : "−";
@@ -257,6 +444,39 @@ function buatItemTransaksi(t, denganAksi) {
         aksi.appendChild(buatTombol("btn-ikon btn-ikon-hapus", "Hapus", () => hapusTransaksi(t.id)));
         li.appendChild(aksi);
     }
+    return li;
+}
+
+// ----- Satu baris tagihan -----
+function buatItemTagihan(t, denganHapus) {
+    const status = statusTagihan(t);
+    const li = buatElemen("li", `item item-tagihan status-${status}`);
+
+    const ikon = buatElemen("span", "item-ikon", t.klien.charAt(0).toUpperCase());
+
+    const info = buatElemen("div", "item-info");
+    info.append(
+        buatElemen("strong", "", t.proyek),
+        buatElemen("small", "", `${t.klien} · jatuh tempo ${formatTanggal(t.jatuhTempo)}`)
+    );
+
+    const kanan = buatElemen("div", "item-kanan");
+    kanan.append(
+        buatElemen("span", "nominal", formatRupiah(t.nominal)),
+        buatElemen("span", `label-status ${status}`, teksStatus(t))
+    );
+
+    li.append(ikon, info, kanan);
+
+    const aksi = buatElemen("div", "item-aksi");
+    if (status !== "lunas") {
+        aksi.appendChild(buatTombol("btn-ikon btn-ikon-lunas", "Tandai lunas", () => tandaiLunas(t.id)));
+    }
+    if (denganHapus) {
+        aksi.appendChild(buatTombol("btn-ikon btn-ikon-hapus", "Hapus", () => hapusTagihan(t.id)));
+    }
+    if (aksi.children.length > 0) li.appendChild(aksi);
+
     return li;
 }
 
@@ -274,8 +494,37 @@ function renderDaftar() {
     hasil.forEach((t) => ul.appendChild(buatItemTransaksi(t, true)));
 }
 
+// ----- Daftar tagihan -----
+function renderTagihan() {
+    const hasil = daftarTagihan.filter(cocokFilterStatus).sort(urutkanTagihan);
+    const ul = $("daftar-tagihan");
+    ul.innerHTML = "";
+
+    if (hasil.length === 0) {
+        const teks = daftarTagihan.length === 0
+            ? "Belum ada tagihan. Klik “+ Tagihan” untuk mencatat tagihan ke klien."
+            : "Tidak ada tagihan dengan status ini.";
+        ul.appendChild(buatElemen("li", "kosong", teks));
+    }
+
+    hasil.forEach((t) => ul.appendChild(buatItemTagihan(t, true)));
+}
+
 // ----- Dashboard -----
 function renderDashboard() {
+    // 5 tagihan belum lunas dengan jatuh tempo terdekat
+    const perluDitagih = daftarTagihan
+        .filter((t) => t.status === "belum dibayar")
+        .sort(urutkanTagihan)
+        .slice(0, 5);
+
+    const ulTagihan = $("dashboard-tagihan");
+    ulTagihan.innerHTML = "";
+    if (perluDitagih.length === 0) {
+        ulTagihan.appendChild(buatElemen("li", "kosong", "Tidak ada tagihan yang menunggu pembayaran."));
+    }
+    perluDitagih.forEach((t) => ulTagihan.appendChild(buatItemTagihan(t, false)));
+
     // 5 transaksi terbaru ([...] menyalin array supaya data asli tidak ikut terurut)
     const terbaru = [...daftarTransaksi].sort(urutkanTerbaru).slice(0, 5);
 
@@ -292,6 +541,7 @@ function renderSemua() {
     hitungRingkasan();
     renderDashboard();
     renderDaftar();
+    renderTagihan();
 }
 
 // =====================================================
@@ -307,6 +557,7 @@ document.querySelectorAll("[data-ke]").forEach((tombol) => {
 });
 
 $("btn-tambah-transaksi").addEventListener("click", () => bukaDialogTransaksi());
+$("btn-tambah-tagihan").addEventListener("click", () => bukaDialogTagihan());
 
 // Tombol Batal / × menutup dialog tempat tombol itu berada
 document.querySelectorAll("[data-tutup]").forEach((tombol) => {
@@ -326,6 +577,19 @@ document.querySelectorAll('input[name="jenis"]').forEach((radio) => {
 
 $("form-transaksi").addEventListener("submit", simpanTransaksi);
 $("form-transaksi").addEventListener("input", hapusErrorSaatDiubah);
+$("form-tagihan").addEventListener("submit", simpanTagihan);
+$("form-tagihan").addEventListener("input", hapusErrorSaatDiubah);
+
+// Filter status tagihan
+document.querySelectorAll("#filter-status button").forEach((tombol) => {
+    tombol.addEventListener("click", () => {
+        filterStatusTagihan = tombol.dataset.status;
+        document.querySelectorAll("#filter-status button").forEach((b) => {
+            b.classList.toggle("aktif", b === tombol);
+        });
+        renderTagihan();
+    });
+});
 
 // =====================================================
 // SAAT HALAMAN DIBUKA

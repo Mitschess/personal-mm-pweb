@@ -12,3 +12,6 @@
 10. Menyimpan dan memuat data dari localStorage (W4)
 11. Menghitung total pemasukan, pengeluaran, dan saldo secara otomatis (W5)
 12. Menambah validasi form dengan pesan error di halaman (W6)
+13. Menambah menu Tagihan dan form tagihan klien dengan jatuh tempo
+14. Tagihan yang ditandai lunas otomatis menjadi pemasukan
+15. Menampilkan total piutang dan tagihan yang terlambat

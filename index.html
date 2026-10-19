@@ -32,10 +32,16 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4"/></svg>
                     <span>Transaksi</span>
                 </button>
+                <button class="nav-item" data-halaman="tagihan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>
+                    <span>Tagihan</span>
+                    <span class="badge" id="badge-tagihan"></span>
+                </button>
             </nav>
 
             <!-- Tombol aksi utama di kanan navbar -->
             <div class="navbar-aksi">
+                <button class="btn btn-garis" id="btn-tambah-tagihan">+ Tagihan</button>
                 <button class="btn btn-utama" id="btn-tambah-transaksi">+ Transaksi</button>
             </div>
         </header>
@@ -65,14 +71,29 @@
                         <p class="kartu-angka" id="total-pengeluaran">Rp 0</p>
                         <p class="kartu-sub" id="info-pengeluaran">0 transaksi</p>
                     </article>
+                    <!-- Fitur khas: total piutang -->
+                    <article class="kartu kartu-piutang">
+                        <p class="kartu-label">Total Piutang</p>
+                        <p class="kartu-angka" id="total-piutang">Rp 0</p>
+                        <p class="kartu-sub" id="info-piutang">Belum ada tagihan</p>
+                    </article>
                 </div>
 
-                <div class="panel">
-                    <div class="panel-kepala">
-                        <h2>Transaksi terbaru</h2>
-                        <button class="link" data-ke="transaksi">Lihat semua</button>
+                <div class="grid-dua">
+                    <div class="panel">
+                        <div class="panel-kepala">
+                            <h2>Perlu ditagih</h2>
+                            <button class="link" data-ke="tagihan">Lihat semua</button>
+                        </div>
+                        <ul class="daftar" id="dashboard-tagihan"></ul>
                     </div>
-                    <ul class="daftar" id="dashboard-transaksi"></ul>
+                    <div class="panel">
+                        <div class="panel-kepala">
+                            <h2>Transaksi terbaru</h2>
+                            <button class="link" data-ke="transaksi">Lihat semua</button>
+                        </div>
+                        <ul class="daftar" id="dashboard-transaksi"></ul>
+                    </div>
                 </div>
 
             </section>
@@ -82,6 +103,19 @@
                 <div class="panel">
                     <!-- Diisi oleh JavaScript, terbaru di atas -->
                     <ul class="daftar" id="daftar-transaksi"></ul>
+                </div>
+            </section>
+
+            <!-- ===== Halaman: Tagihan klien (fitur khas) ===== -->
+            <section class="halaman" id="halaman-tagihan">
+                <div class="panel">
+                    <div class="segmen" id="filter-status">
+                        <button class="aktif" data-status="semua">Semua</button>
+                        <button data-status="belum">Belum dibayar</button>
+                        <button data-status="terlambat">Terlambat</button>
+                        <button data-status="lunas">Lunas</button>
+                    </div>
+                    <ul class="daftar" id="daftar-tagihan"></ul>
                 </div>
             </section>
 
@@ -132,6 +166,53 @@
             <div class="dialog-aksi">
                 <button type="button" class="btn btn-garis" data-tutup>Batal</button>
                 <button type="submit" class="btn btn-utama">Simpan</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ===== Dialog: tambah tagihan (fitur khas) ===== -->
+    <dialog id="dialog-tagihan">
+        <form id="form-tagihan" novalidate>
+            <div class="dialog-kepala">
+                <h2>Tagihan Baru</h2>
+                <button type="button" class="btn-tutup" data-tutup aria-label="Tutup">&times;</button>
+            </div>
+
+            <div class="baris-dua">
+                <div class="field">
+                    <label for="tagihan-klien">Nama klien</label>
+                    <input type="text" id="tagihan-klien" placeholder="contoh: PT Maju Jaya">
+                    <small class="error" id="error-tagihan-klien"></small>
+                </div>
+                <div class="field">
+                    <label for="tagihan-proyek">Proyek</label>
+                    <input type="text" id="tagihan-proyek" placeholder="contoh: Desain logo">
+                    <small class="error" id="error-tagihan-proyek"></small>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="tagihan-nominal">Nominal (Rp)</label>
+                <input type="number" id="tagihan-nominal" min="1" inputmode="numeric" placeholder="contoh: 1500000">
+                <small class="error" id="error-tagihan-nominal"></small>
+            </div>
+
+            <div class="baris-dua">
+                <div class="field">
+                    <label for="tagihan-tanggal">Tanggal tagihan</label>
+                    <input type="date" id="tagihan-tanggal">
+                    <small class="error" id="error-tagihan-tanggal"></small>
+                </div>
+                <div class="field">
+                    <label for="tagihan-jatuh-tempo">Jatuh tempo</label>
+                    <input type="date" id="tagihan-jatuh-tempo">
+                    <small class="error" id="error-tagihan-jatuh-tempo"></small>
+                </div>
+            </div>
+
+            <div class="dialog-aksi">
+                <button type="button" class="btn btn-garis" data-tutup>Batal</button>
+                <button type="submit" class="btn btn-utama">Simpan tagihan</button>
             </div>
         </form>
     </dialog>

@@ -27,3 +27,8 @@
 - **Prompt:** "coba implement js", "coba buat web baru yang implement freelance money management"
 - **Dipakai:** `hitungRingkasan()` dan `jumlahkan()` (filter + reduce), `renderDashboard()`, `validasiTransaksi()`, `tampilkanError()`, `hapusError()`, `hapusErrorSaatDiubah()`
 - **Diubah:** —
+
+### 4. Fitur khas: tagihan klien
+- **Prompt:** "coba implement js" (versi pertama: tagihan + tandai lunas), "coba buat web baru yang implement freelance money management" (ditambah jatuh tempo dan status terlambat)
+- **Dipakai:** `simpanTagihan()`, `validasiTagihan()`, `tandaiLunas()`, `hapusTagihan()`, `statusTagihan()`, `teksStatus()`, `renderTagihan()`, total piutang di `hitungRingkasan()`
+- **Diubah:** — (alasan memakai `tagihanId` ada di PROSES.md bagian keputusan desain)
