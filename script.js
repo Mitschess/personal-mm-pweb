@@ -3,6 +3,7 @@
 const KUNCI = {
     transaksi: "fmm_transaksi",
     tagihan: "fmm_tagihan",
+    budget: "fmm_budget",
 };
 
 // Kategori tetap untuk tiap jenis transaksi
@@ -15,13 +16,16 @@ const JUDUL_HALAMAN = {
     dashboard: "Dashboard",
     transaksi: "Transaksi",
     tagihan: "Tagihan Klien",
+    pengaturan: "Pengaturan",
 };
 
 // ===== Data di memori =====
 // transaksi: { id, tanggal, jenis, kategori, nominal, catatan, tagihanId? }
 // tagihan:   { id, klien, proyek, nominal, tanggal, jatuhTempo, status, tanggalLunas }
+// budget:    { "Makan": 600000, ... }  (batas pengeluaran per bulan)
 let daftarTransaksi = [];
 let daftarTagihan = [];
+let budget = {};
 let filterStatusTagihan = "semua";
 
 // Singkatan untuk document.getElementById
@@ -31,6 +35,7 @@ const $ = (id) => document.getElementById(id);
 function simpanData() {
     localStorage.setItem(KUNCI.transaksi, JSON.stringify(daftarTransaksi));
     localStorage.setItem(KUNCI.tagihan, JSON.stringify(daftarTagihan));
+    localStorage.setItem(KUNCI.budget, JSON.stringify(budget));
 }
 
 function muatData() {
@@ -38,10 +43,12 @@ function muatData() {
         // getItem mengembalikan null kalau belum ada data -> pakai nilai awal
         daftarTransaksi = JSON.parse(localStorage.getItem(KUNCI.transaksi)) || [];
         daftarTagihan = JSON.parse(localStorage.getItem(KUNCI.tagihan)) || [];
+        budget = JSON.parse(localStorage.getItem(KUNCI.budget)) || {};
     } catch (err) {
         // Kalau isi localStorage rusak (bukan JSON), mulai dari kosong
         daftarTransaksi = [];
         daftarTagihan = [];
+        budget = {};
     }
 }
 
@@ -69,6 +76,11 @@ function tanggalHariIni() {
     const bulan = String(d.getMonth() + 1).padStart(2, "0");
     const hari = String(d.getDate()).padStart(2, "0");
     return `${d.getFullYear()}-${bulan}-${hari}`;
+}
+
+// "YYYY-MM" bulan berjalan, dipakai untuk budget
+function bulanIni() {
+    return tanggalHariIni().slice(0, 7);
 }
 
 // Jumlah hari dari tanggal a ke tanggal b (bisa negatif)
@@ -243,7 +255,14 @@ function simpanTransaksi(event) {
     simpanData();
     $("dialog-transaksi").close();
     renderSemua();
-    tampilkanToast(pesan);
+
+    // Bonus: peringatan budget kalau pengeluaran ini membuat budget hampir habis/terlewati
+    const peringatan = data.jenis === "pengeluaran" ? cekBudget(data.kategori, data.tanggal) : null;
+    if (peringatan) {
+        tampilkanToast(peringatan, "peringatan");
+    } else {
+        tampilkanToast(pesan);
+    }
 }
 
 function hapusTransaksi(id) {
@@ -411,6 +430,157 @@ function cocokFilterStatus(tagihan) {
     if (filterStatusTagihan === "semua") return true;
     if (filterStatusTagihan === "belum") return tagihan.status === "belum dibayar";
     return statusTagihan(tagihan) === filterStatusTagihan; // "terlambat" atau "lunas"
+}
+
+// =====================================================
+// BUDGET (bonus)
+// =====================================================
+function hitungPemakaianBudget(kategori, bulan) {
+    const terpakai = daftarTransaksi.filter(
+        (t) => t.jenis === "pengeluaran" && t.kategori === kategori && t.tanggal.startsWith(bulan)
+    );
+    return jumlahkan(terpakai);
+}
+
+// Dibandingkan langsung dengan nominal (bukan persen yang sudah dibulatkan)
+// supaya terpakai tepat = batas dianggap habis, bukan "hampir habis"
+function statusBudget(terpakai, batas) {
+    if (terpakai >= batas) return "lewat"; // habis atau terlewati
+    if (terpakai >= batas * 0.8) return "mendekati";
+    return "aman";
+}
+
+// Mengembalikan teks peringatan, atau null kalau masih aman
+function cekBudget(kategori, tanggal) {
+    const batas = budget[kategori];
+    if (!batas) return null;
+
+    const terpakai = hitungPemakaianBudget(kategori, tanggal.slice(0, 7));
+    const status = statusBudget(terpakai, batas);
+
+    if (status === "lewat" && terpakai === batas) {
+        return `Budget ${kategori} bulan ini sudah habis.`;
+    }
+    if (status === "lewat") {
+        return `Budget ${kategori} terlewati: ${formatRupiah(terpakai)} dari ${formatRupiah(batas)}.`;
+    }
+    if (status === "mendekati") {
+        const persen = Math.round((terpakai / batas) * 100);
+        return `Budget ${kategori} hampir habis (${persen}% terpakai).`;
+    }
+    return null;
+}
+
+function renderIsianBudget() {
+    const wadah = $("isian-budget");
+    wadah.innerHTML = "";
+
+    KATEGORI.pengeluaran.forEach((kategori, i) => {
+        const field = buatElemen("div", "field-budget");
+
+        const label = buatElemen("label", "", kategori);
+        label.htmlFor = `budget-${i}`;
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = "0";
+        input.id = `budget-${i}`;
+        input.placeholder = "Tanpa batas";
+        input.dataset.kategori = kategori;
+        input.value = budget[kategori] || "";
+
+        field.append(label, input);
+        wadah.appendChild(field);
+    });
+}
+
+function simpanBudget(event) {
+    event.preventDefault();
+
+    const budgetBaru = {};
+    let valid = true;
+
+    document.querySelectorAll("#isian-budget input").forEach((input) => {
+        input.classList.remove("tidak-valid");
+        if (input.value === "") return; // kosong = tanpa batas
+
+        const nilai = Number(input.value);
+        if (nilai < 0) {
+            input.classList.add("tidak-valid");
+            valid = false;
+        } else if (nilai > 0) {
+            budgetBaru[input.dataset.kategori] = nilai;
+        }
+    });
+
+    if (!valid) {
+        $("error-budget").textContent = "Budget tidak boleh negatif.";
+        return;
+    }
+
+    $("error-budget").textContent = "";
+    budget = budgetBaru;
+    simpanData();
+    renderSemua();
+    tampilkanToast("Budget disimpan.");
+}
+
+// =====================================================
+// EKSPOR / IMPOR JSON (bonus)
+// =====================================================
+function eksporData() {
+    const isi = {
+        aplikasi: "Kas Freelance",
+        diekspor: new Date().toISOString(),
+        transaksi: daftarTransaksi,
+        tagihan: daftarTagihan,
+        budget: budget,
+    };
+
+    // Buat file sementara dari teks JSON, lalu klik link download-nya
+    const blob = new Blob([JSON.stringify(isi, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `kas-freelance-${tanggalHariIni()}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    tampilkanToast("Data diekspor ke file JSON.");
+}
+
+function imporData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const isi = JSON.parse(reader.result);
+            const formatBenar =
+                Array.isArray(isi.transaksi) &&
+                Array.isArray(isi.tagihan) &&
+                isi.transaksi.every((t) => typeof t.nominal === "number");
+            if (!formatBenar) throw new Error("Format file tidak sesuai");
+
+            const pesan = `Impor ${isi.transaksi.length} transaksi dan ${isi.tagihan.length} tagihan?\nData yang ada sekarang akan diganti.`;
+            if (!confirm(pesan)) return;
+
+            daftarTransaksi = isi.transaksi;
+            daftarTagihan = isi.tagihan;
+            budget = isi.budget || {};
+            simpanData();
+            renderIsianBudget();
+            renderSemua();
+            tampilkanToast("Data berhasil diimpor.");
+        } catch (err) {
+            tampilkanToast("File tidak valid. Pilih file hasil ekspor aplikasi ini.", "error");
+        }
+    };
+    reader.readAsText(file);
+
+    // Kosongkan input supaya file yang sama bisa dipilih lagi
+    event.target.value = "";
 }
 
 // =====================================================
@@ -616,6 +786,51 @@ function renderDashboard() {
         ulTransaksi.appendChild(buatElemen("li", "kosong", "Belum ada transaksi."));
     }
     terbaru.forEach((t) => ulTransaksi.appendChild(buatItemTransaksi(t, false)));
+
+    renderBudget();
+}
+
+function renderBudget() {
+    const wadah = $("dashboard-budget");
+    wadah.innerHTML = "";
+
+    const bulan = bulanIni();
+    const kategoriBerbudget = KATEGORI.pengeluaran.filter((k) => budget[k] > 0);
+
+    if (kategoriBerbudget.length === 0) {
+        wadah.appendChild(buatElemen("p", "kosong", "Belum ada budget. Atur di halaman Pengaturan."));
+        return;
+    }
+
+    kategoriBerbudget.forEach((kategori) => {
+        const batas = budget[kategori];
+        const terpakai = hitungPemakaianBudget(kategori, bulan);
+        const persen = Math.round((terpakai / batas) * 100);
+        const status = statusBudget(terpakai, batas);
+        const sisa = batas - terpakai;
+
+        const baris = buatElemen("div", `budget budget-${status}`);
+
+        const kepala = buatElemen("div", "budget-kepala");
+        kepala.append(
+            buatElemen("span", "", kategori),
+            buatElemen("span", "", `${formatRupiah(terpakai)} / ${formatRupiah(batas)}`)
+        );
+
+        const bar = buatElemen("div", "budget-bar");
+        const isi = buatElemen("div", "budget-isi");
+        isi.style.width = Math.min(persen, 100) + "%";
+        bar.appendChild(isi);
+
+        let keterangan = `Sisa ${formatRupiah(sisa)}`;
+        if (status === "mendekati") keterangan = `${persen}% terpakai — hampir habis`;
+        if (status === "lewat") {
+            keterangan = sisa === 0 ? "Budget habis" : `Melewati batas ${formatRupiah(-sisa)}`;
+        }
+
+        baris.append(kepala, bar, buatElemen("small", "budget-ket", keterangan));
+        wadah.appendChild(baris);
+    });
 }
 
 // Dipanggil setiap kali data berubah
@@ -633,7 +848,7 @@ document.querySelectorAll(".nav-item").forEach((tombol) => {
     tombol.addEventListener("click", () => tampilkanHalaman(tombol.dataset.halaman));
 });
 
-// Tombol "Lihat semua" di dashboard
+// Tombol "Lihat semua" / "Atur budget" di dashboard
 document.querySelectorAll("[data-ke]").forEach((tombol) => {
     tombol.addEventListener("click", () => tampilkanHalaman(tombol.dataset.ke));
 });
@@ -661,6 +876,7 @@ $("form-transaksi").addEventListener("submit", simpanTransaksi);
 $("form-transaksi").addEventListener("input", hapusErrorSaatDiubah);
 $("form-tagihan").addEventListener("submit", simpanTagihan);
 $("form-tagihan").addEventListener("input", hapusErrorSaatDiubah);
+$("form-budget").addEventListener("submit", simpanBudget);
 
 // Filter transaksi
 $("filter-cari").addEventListener("input", renderDaftar);
@@ -684,11 +900,15 @@ document.querySelectorAll("#filter-status button").forEach((tombol) => {
     });
 });
 
+$("btn-ekspor").addEventListener("click", eksporData);
+$("input-impor").addEventListener("change", imporData);
+
 // =====================================================
 // SAAT HALAMAN DIBUKA
 // =====================================================
 muatData();
 isiFilterKategori();
+renderIsianBudget();
 $("tanggal-hari-ini").textContent = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
     day: "numeric",

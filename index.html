@@ -37,6 +37,10 @@
                     <span>Tagihan</span>
                     <span class="badge" id="badge-tagihan"></span>
                 </button>
+                <button class="nav-item" data-halaman="pengaturan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+                    <span>Pengaturan</span>
+                </button>
             </nav>
 
             <!-- Tombol aksi utama di kanan navbar -->
@@ -96,6 +100,13 @@
                     </div>
                 </div>
 
+                <div class="panel">
+                    <div class="panel-kepala">
+                        <h2>Budget bulan ini</h2>
+                        <button class="link" data-ke="pengaturan">Atur budget</button>
+                    </div>
+                    <div class="daftar-budget" id="dashboard-budget"></div>
+                </div>
             </section>
 
             <!-- ===== Halaman: Transaksi (W2, W3, filter) ===== -->
@@ -142,6 +153,30 @@
                 </div>
             </section>
 
+            <!-- ===== Halaman: Pengaturan (budget + backup) ===== -->
+            <section class="halaman" id="halaman-pengaturan">
+                <div class="grid-dua">
+                    <div class="panel">
+                        <h2>Budget per kategori</h2>
+                        <p class="teks-redup">Batas pengeluaran tiap bulan. Kosongkan jika kategori tidak ingin dibatasi.</p>
+                        <form id="form-budget" novalidate>
+                            <!-- Isian dibuat oleh JavaScript dari daftar kategori pengeluaran -->
+                            <div id="isian-budget"></div>
+                            <small class="error" id="error-budget"></small>
+                            <button type="submit" class="btn btn-utama">Simpan budget</button>
+                        </form>
+                    </div>
+                    <div class="panel">
+                        <h2>Backup data</h2>
+                        <p class="teks-redup">Data hanya tersimpan di browser ini. Ekspor ke file JSON untuk cadangan, lalu impor kembali di browser lain.</p>
+                        <div class="aksi-backup">
+                            <button class="btn btn-utama" id="btn-ekspor">Ekspor JSON</button>
+                            <label class="btn btn-garis" for="input-impor">Impor JSON</label>
+                            <input type="file" id="input-impor" accept=".json,application/json" hidden>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">Hilmi Taqiyuddin Haq &middot; 5053251012</footer>

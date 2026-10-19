@@ -1,6 +1,5 @@
 ## Langkah pengerjaan
 
-
 1. Membuat README yang berisi identitas dan permasalahan dari persona yang didapat
 2. Inisialisasi AI-LOG, PROSES.md, HTML, CSS, dan JS
 3. Merancang struktur data yang disimpan di localStorage (transaksi, tagihan, budget)
@@ -18,3 +17,5 @@
 15. Menampilkan total piutang dan tagihan yang terlambat
 16. Menambah fitur edit transaksi
 17. Menambah filter jenis, kategori, rentang tanggal, dan pencarian catatan
+18. Menambah menu Pengaturan untuk budget per kategori beserta peringatannya
+19. Menambah ekspor dan impor data JSON

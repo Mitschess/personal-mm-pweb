@@ -37,3 +37,11 @@
 - **Prompt:** "coba buat web baru yang implement freelance money management"
 - **Dipakai:** mode edit di `bukaDialogTransaksi()` dan `simpanTransaksi()` (hidden input `transaksi-id`), `ambilTransaksiTerfilter()`, `isiFilterKategori()`, `resetFilter()`
 - **Diubah:** —
+
+### 6. Bonus: budget dan ekspor/impor JSON
+- **Prompt:** "coba buat web baru yang implement freelance money management"
+- **Dipakai:** `cekBudget()`, `statusBudget()`, `renderBudget()`, `renderIsianBudget()`, `simpanBudget()`, `eksporData()`, `imporData()`
+- **Diubah:**
+  - Bug: budget terpakai tepat 100% ditulis "hampir habis" → `statusBudget()` membandingkan nominal langsung, bukan persen yang dibulatkan
+  - Bug: teks "Belum ada budget" terjepit di satu kolom grid → `grid-column: 1 / -1`
+  - Teks budget terlipat karena kolom hanya 240px → `minmax(min(300px, 100%), 1fr)`
