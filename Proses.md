@@ -1,5 +1,6 @@
 ## Langkah pengerjaan
 
+
 1. Membuat README yang berisi identitas dan permasalahan dari persona yang didapat
 2. Inisialisasi AI-LOG, PROSES.md, HTML, CSS, dan JS
 3. Merancang struktur data yang disimpan di localStorage (transaksi, tagihan, budget)
